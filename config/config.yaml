@@ -1,0 +1,56 @@
+env: test
+
+host:
+  test: http://testapi-new.battlexpert.com
+  prod: http://testapi-new.battlexpert.com
+
+timeout: 10
+auth:
+  token: ""
+  token_type: Bearer
+  header_name: Authorization
+  login:
+    enabled: true
+    method: POST
+    path: /y3tw0o33ukqx96we/auth/email/login/anonymous
+    request_params:
+      pkg: com.gxh.solitaire.bible.card.game
+      lang: zh
+      lng: -86.300568
+      lat: 32.377716
+      model: iPhone16,2
+      os: ios
+      ver: 1.0.0
+      tz: Asia/Shanghai
+      debug: "true"
+      jb: "false"
+      adid: fbcf040e-1339-4b59-b4cc-652a69f88ff3
+      idfv: ""
+      tk: ""
+      isNewUser: "true"
+    request_json:
+      deviceId: solitairebiblewq000000wq2001
+    request_headers:
+      Content-Type: application/json
+      X-HMAC-ACCESS-KEY: vBDRrlVtW4mJwPhL
+      X-HMAC-ALGORITHM: hmac-sha256
+      Date: "Thu, 29 Feb 2024 08:06:05 GMT"
+      X-HMAC-SIGNED-HEADERS: x-custom-a
+      X-HMAC-SIGNATURE: S/f4qB3E2vHY2F76mK2fzPB/xHV40PCU27kQ2OM2tD0=
+      x-custom-a: "123"
+    token_field: data.token
+
+retry:
+  total: 2
+  backoff_factor: 0.3
+  status_forcelist:
+    - 429
+    - 500
+    - 502
+    - 503
+    - 504
+
+log_mask_fields:
+  - token
+  - authorization
+  - password
