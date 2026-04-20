@@ -14,10 +14,8 @@ def load_case_data() -> list[dict]:
 
 
 class TestLogin:
-    # 你的 case 在这里逐条展开执行，ids 使用 case.name 便于报告定位
     @pytest.mark.parametrize("case", load_case_data(), ids=lambda case: case["name"])
     def test_anonymous_login(self, client, case: dict) -> None:
-        # 通用请求参数组装：仅传递当前 case 中配置过的字段
         request_kwargs = {
             key: case[key]
             for key in ("params", "json", "data", "headers")
