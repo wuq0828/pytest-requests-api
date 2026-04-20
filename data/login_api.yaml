@@ -1,3 +1,5 @@
+# 这里是测试用例数据层（
+# 每个 case 会被 testcases/test_login.py 参数化执行一次
 cases:
   - name: anonymous_login_success
     method: POST

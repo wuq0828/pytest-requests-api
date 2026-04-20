@@ -11,6 +11,7 @@ def client() -> RequestClient:
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
+    # 用例失败时自动把最后一次接口响应附加到 Allure，方便排查
     outcome = yield
     report = outcome.get_result()
     if report.when != "call" or report.passed:
