@@ -18,6 +18,8 @@ class RequestClient:
         self.session = requests.Session()
         self.logger = get_logger("request_client")
         self.cached_token: str | None = None
+        self.cached_user: Any = None
+        self.cached_login_payload: dict[str, Any] | None = None
         self.last_response: requests.Response | None = None
         self._setup_retry()
 
@@ -55,32 +57,39 @@ class RequestClient:
         headers[header_name] = f"{token_type} {token}".strip()
         return headers
 
-    def _extract_token(self, payload: Any, token_field: str) -> str | None:
-        if not isinstance(payload, dict):
+    def _extract_by_path(self, payload: Any, field_path: str) -> Any:
+        if not field_path:
             return None
-        if "." not in token_field:
-            value = payload.get(token_field)
-            return value if isinstance(value, str) else None
         current: Any = payload
-        for part in token_field.split("."):
+        for part in field_path.split("."):
             if not isinstance(current, dict):
                 return None
             current = current.get(part)
-        return current if isinstance(current, str) else None
+        return current
+
+    def _extract_token(self, payload: Any, token_field: str) -> str | None:
+        value = self._extract_by_path(payload, token_field)
+        return value if isinstance(value, str) else None
 
     def _get_cached_token(self) -> str | None:
         if self.cached_token:
             return self.cached_token
+        self._ensure_login_cache()
+        return self.cached_token
+
+    def _ensure_login_cache(self) -> None:
+        if self.cached_token:
+            return
         auth_cfg = self.config.get("auth", {})
         login_cfg = auth_cfg.get("login", {})
         if not login_cfg.get("enabled", False):
-            return None
+            return
 
         method = login_cfg.get("method", "POST")
         path = login_cfg.get("path")
         if not path:
             self.logger.warning("Auth login enabled but no path configured; skip auto login.")
-            return None
+            return
 
         login_kwargs: dict[str, Any] = {}
         if login_cfg.get("request_json") is not None:
@@ -102,13 +111,32 @@ class RequestClient:
         )
         response.raise_for_status()
 
+        payload = response.json()
         token_field = login_cfg.get("token_field", "token")
-        token = self._extract_token(response.json(), token_field)
+        token = self._extract_token(payload, token_field)
         if not token:
             raise ValueError(f"Token field '{token_field}' not found in login response.")
         self.cached_token = token
-        self.logger.info("Token cached successfully from login response.")
-        return self.cached_token
+        self.cached_login_payload = payload if isinstance(payload, dict) else None
+
+        user_field = login_cfg.get("user_field", "data.user")
+        self.cached_user = self._extract_by_path(payload, user_field)
+        self.logger.info("Token and user cached successfully from login response.")
+
+    def get_token(self) -> str | None:
+        return self._get_cached_token()
+
+    def get_user(self) -> Any:
+        self._ensure_login_cache()
+        return self.cached_user
+
+    def get_auth_context(self) -> dict[str, Any]:
+        self._ensure_login_cache()
+        return {
+            "token": self.cached_token,
+            "user": self.cached_user,
+            "login_payload": self.cached_login_payload,
+        }
 
     def _mask_value(self, value: Any) -> Any:
         if isinstance(value, dict):

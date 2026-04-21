@@ -27,7 +27,7 @@ auth:
       adid: fbcf040e-1339-4b59-b4cc-652a69f88ff3
       idfv: ""
       tk: ""
-      isNewUser: "true"
+      # isNewUser: "true"
     request_json:
       deviceId: solitairebiblewq000000wq2001
     request_headers:
@@ -39,6 +39,7 @@ auth:
       X-HMAC-SIGNATURE: S/f4qB3E2vHY2F76mK2fzPB/xHV40PCU27kQ2OM2tD0=
       x-custom-a: "123"
     token_field: data.token
+    user_field: data.user
 
 retry:
   total: 2
